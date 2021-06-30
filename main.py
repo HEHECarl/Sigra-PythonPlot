@@ -38,5 +38,5 @@ def init_window():
 if __name__ == '__main__':
     main_window = MainWindow()
     main_window.init_window()
-    main_window.exec_app()
-    #pyqtgraph.examples.run()
+    # pyqtgraph.examples.run()
+
