@@ -3,6 +3,7 @@ import pyqtgraph as pg
 from DataProcess import DataProcessor
 from functools import partial
 from datetime import datetime
+import os
 
 COLORS = ["#DC143C", "#7CFC00", "#1E90FF", "#FF1493", "#FFD700", "#7B68EE", "#00CED1", "#808000"]
 
@@ -110,10 +111,30 @@ class MainWindow:
         self.plot_widget.getViewBox().autoRange()
 
     def save_pick_button_click(self):
-        print(datetime.fromtimestamp(self.picks[0].p[0]).strftime('%Y/%m/%d %H:%M:%S'))
+        if len(self.picks):
+            desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+            f = open(desktop + "/PICKS.txt", 'w')
+            for i in range(len(self.picks)):
+                f.writelines(self.picks[i].label.format + datetime.fromtimestamp(self.picks[i].p[0]).
+                             strftime(': %Y/%m/%d %H:%M:%S \n'))
 
     def load_pick_button_click(self):
-        print(1)
+        desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+        fname = QtGui.QFileDialog.getOpenFileName(self.main_widget, 'Open file',
+                                            desktop, "Text files (*.txt)")
+
+        f = open(fname[0], 'r')
+        line = f.readline()
+        while line != '':
+            label = line[0]
+            dt = datetime.strptime(line[3:21], '%Y/%m/%d %H:%M:%S')
+            pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[len(self.picks) % 8], label=label,
+                                   labelOpts={'position': 0.1, 'color': COLORS[len(self.picks) % 8],
+                                              'fill': (200, 200, 200, 50), 'movable': True})
+            self.plot_widget.addItem(pick, ignoreBounds=True)
+            pick.setPos(dt.timestamp())
+            self.picks.append(pick)
+            line = f.readline()
 
     def channel_button_click(self, channel):
         if self.btn_group[channel].isChecked():
