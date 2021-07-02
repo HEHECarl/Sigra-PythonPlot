@@ -3,9 +3,11 @@ import pyqtgraph as pg
 from DataProcess import DataProcessor
 from functools import partial
 from datetime import datetime
-import os
+from Picks import Picks
 
-COLORS = ["#DC143C", "#7CFC00", "#1E90FF", "#FF1493", "#FFD700", "#7B68EE", "#00CED1", "#808000"]
+
+COLORS = ["#A93226", "#884EA0", "#2471A3", "#17A589", "#229954", "#D4AC0D", "#CA6F1E", "#2E4053",
+          "#CB4335", "#7D3C98", "#2E86C1", "#138D75", "#28B463", "#D68910", "#BA4A00", "#273746"]
 
 
 class MainWindow:
@@ -32,10 +34,13 @@ class MainWindow:
         self.legend = pg.LegendItem((80, 60), offset=(70, 20))
         self.legend.setParentItem(self.plot_widget.graphicsItem())
 
+        self.datasets = []
+        self.data_count = 0
+
         self.plot_group = []
         self.btn_group = []
 
-        self.picks = []
+        self.picks = Picks()
 
         self.moues_X = 0
         self.moues_Y = 0
@@ -81,22 +86,24 @@ class MainWindow:
     def dropEvent(self, event):
         processor = DataProcessor()
         datasets = processor.read_datetime_file(event.mimeData().urls()[0].toLocalFile())
+        self.datasets.extend(datasets)
         count = len(datasets)
         for i in range(count):
-            self.plot_group.append(self.plot_widget.plot(x=[x.timestamp() for x in datasets[i].get_x()],
-                                                         y=datasets[i].get_y(), pen=pg.mkPen(COLORS[i % 8], width=2)))
-        self.generate_channel_buttons(count)
+            self.plot_group.append(self.plot_widget.plot(x=datasets[i].get_x(),
+                                                         y=datasets[i].get_y(),
+                                                         pen=pg.mkPen(COLORS[self.data_count % 8], width=1)))
+            self.generate_channel_buttons()
+            self.data_count += 1
 
-    def generate_channel_buttons(self, count):
-        for i in range(count):
-            self.btn_group.append(QtGui.QPushButton(str(i), checkable=True))
-            style = 'QPushButton {background-color: ' + COLORS[i % 8] + ';}'
-            self.btn_group[i].setStyleSheet(style)
-            self.channel_buttons_layout.addWidget(self.btn_group[i])
-            self.btn_group[i].setChecked(True)
-            self.btn_group[i].setMaximumWidth(30)
-            self.btn_group[i].setMaximumHeight(30)
-            self.btn_group[i].clicked.connect(partial(self.channel_button_click, i))
+    def generate_channel_buttons(self):
+        self.btn_group.append(QtGui.QPushButton(str(self.data_count + 1), checkable=True))
+        style = 'QPushButton {background-color: ' + COLORS[self.data_count % 8] + ';}'
+        self.btn_group[self.data_count].setStyleSheet(style)
+        self.channel_buttons_layout.addWidget(self.btn_group[self.data_count])
+        self.btn_group[self.data_count].setChecked(True)
+        self.btn_group[self.data_count].setMaximumWidth(30)
+        self.btn_group[self.data_count].setMaximumHeight(30)
+        self.btn_group[self.data_count].clicked.connect(partial(self.channel_button_click, self.data_count))
         self.channel_group_box.setLayout(self.channel_buttons_layout)
 
     def zoom_button_click(self):
@@ -111,30 +118,14 @@ class MainWindow:
         self.plot_widget.getViewBox().autoRange()
 
     def save_pick_button_click(self):
-        if len(self.picks):
-            desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-            f = open(desktop + "/PICKS.txt", 'w')
-            for i in range(len(self.picks)):
-                f.writelines(self.picks[i].label.format + datetime.fromtimestamp(self.picks[i].p[0]).
-                             strftime(': %Y/%m/%d %H:%M:%S \n'))
+        self.picks.save_picks(self.datasets)
+        msg = QtGui.QMessageBox()
+        msg.setText("Picks file has been saved to the desktop")
+        msg.setWindowTitle("Save Picks File")
+        msg.exec_()
 
     def load_pick_button_click(self):
-        desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-        fname = QtGui.QFileDialog.getOpenFileName(self.main_widget, 'Open file',
-                                            desktop, "Text files (*.txt)")
-
-        f = open(fname[0], 'r')
-        line = f.readline()
-        while line != '':
-            label = line[0]
-            dt = datetime.strptime(line[3:21], '%Y/%m/%d %H:%M:%S')
-            pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[len(self.picks) % 8], label=label,
-                                   labelOpts={'position': 0.1, 'color': COLORS[len(self.picks) % 8],
-                                              'fill': (200, 200, 200, 50), 'movable': True})
-            self.plot_widget.addItem(pick, ignoreBounds=True)
-            pick.setPos(dt.timestamp())
-            self.picks.append(pick)
-            line = f.readline()
+        self.picks.load_pick(self.main_widget, self.plot_widget)
 
     def channel_button_click(self, channel):
         if self.btn_group[channel].isChecked():
@@ -160,9 +151,13 @@ class MainWindow:
             self.hLine.setPos(self.moues_Y)
 
     def key_pressed(self, evt):
-        pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[len(self.picks) % 8], label=chr(evt.key()),
-                               labelOpts={'position': 0.1, 'color': COLORS[len(self.picks) % 8],
+        pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[self.picks.count % 8], label=chr(evt.key()) + "1",
+                               labelOpts={'position': 0.1, 'color': COLORS[self.picks.count % 8],
                                           'fill': (200, 200, 200, 50), 'movable': True})
-        self.plot_widget.addItem(pick, ignoreBounds=True)
-        pick.setPos(self.moues_X)
-        self.picks.append(pick)
+        result, p = self.picks.add_pick(pick)
+        if result == 2:
+            self.plot_widget.addItem(pick, ignoreBounds=True)
+            pick.setPos(self.moues_X)
+        elif result == 1:
+            self.plot_widget.addItem(p, ignoreBounds=True)
+            p.setPos(self.moues_X)

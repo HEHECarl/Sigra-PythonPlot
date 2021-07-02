@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 DATE_FORMATS = ['%d/%m/%Y %H:%M:%S', '%Y/%m/%d %H:%M:%S']
 
@@ -28,7 +28,7 @@ class DataProcessor:
 
             if data_count != 0:
                 data_sets = []
-                dates = [datetime.strptime(line[0:19], date_format)]
+                dates = [datetime.strptime(line[0:19], date_format).timestamp()]
                 datas = []
 
                 for i in range(data_count):
@@ -39,7 +39,7 @@ class DataProcessor:
                     if line == '':
                         break
                     sections = line.split()
-                    dates.append(datetime.strptime(line[0:19], date_format))
+                    dates.append(datetime.strptime(line[0:19], date_format).timestamp())
                     for i in range(data_count):
                         datas[i].append(float(sections[2 + i]))
 

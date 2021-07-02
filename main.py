@@ -1,7 +1,5 @@
-import pyqtgraph.examples
 from PyQt5 import QtGui
 import pyqtgraph as pg
-from datetime import datetime, timedelta
 from DataProcess import DataProcessor, DataSet
 from MainWindow import MainWindow
 
