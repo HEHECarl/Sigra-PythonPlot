@@ -149,9 +149,10 @@ class Picks:
                                             desktop, "Text files (*.txt)")
 
         f = open(fname[0], 'r')
+        f.readline()
         line = f.readline()
-        while line != '':
-            label = line[0]
+        while line != '' and line != '\n':
+            label = line[0:2]
             dt = datetime.strptime(line[4:23], '%Y/%m/%d %H:%M:%S')
             pick = pg.InfiniteLine(angle=90, movable=False, pen=MainWindow.COLORS[self.count % 8], label=label,
                                    labelOpts={'position': 0.1, 'color': MainWindow.COLORS[self.count % 8],

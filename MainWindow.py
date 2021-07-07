@@ -12,7 +12,8 @@ COLORS = ["#FF0000", "#00FF00", "#0000FF", "#000000", "800000", "#008000", "#000
 
 
 class MainWindow:
-    def __init__(self):
+    def __init__(self, argv):
+
         self.app = QtGui.QApplication([])
         self.main_widget = QtGui.QWidget()
         self.main_layout = QtGui.QGridLayout()
