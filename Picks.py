@@ -24,9 +24,11 @@ class Picks:
                 self.count += 1
                 return 2, None
             elif self.picks2[label] is None:
-                p = pg.InfiniteLine(angle=90, movable=False, pen=MainWindow.COLORS[self.pick_num[label] % 8],
+                p = pg.InfiniteLine(angle=90, movable=False,
+                                    pen=MainWindow.COLORS[self.pick_num[label] % MainWindow.COLORS_NUM],
                                     label=pick.label.format[:-1] + "2",
-                                    labelOpts={'position': 0.1, 'color': MainWindow.COLORS[self.pick_num[label] % 8],
+                                    labelOpts={'position': 0.1,
+                                               'color': MainWindow.COLORS[self.pick_num[label] % MainWindow.COLORS_NUM],
                                                'fill': (200, 200, 200, 50), 'movable': True})
                 self.picks2[label] = p
                 return 1, p
@@ -154,9 +156,10 @@ class Picks:
         while line != '' and line != '\n':
             label = line[0:2]
             dt = datetime.strptime(line[4:23], '%Y/%m/%d %H:%M:%S')
-            pick = pg.InfiniteLine(angle=90, movable=False, pen=MainWindow.COLORS[self.count % 8], label=label,
-                                   labelOpts={'position': 0.1, 'color': MainWindow.COLORS[self.count % 8],
-                                              'fill': (200, 200, 200, 50), 'movable': True})
+            pick = pg.InfiniteLine(angle=90, movable=False, pen=MainWindow.COLORS[self.count % MainWindow.COLORS_NUM],
+                                   label=label, labelOpts={
+                    'position': 0.1, 'color': MainWindow.COLORS[self.count % MainWindow.COLORS_NUM],
+                    'fill': (200, 200, 200, 50), 'movable': True})
             plot_widget.addItem(pick, ignoreBounds=True)
             pick.setPos(dt.timestamp())
             self.add_pick(pick)

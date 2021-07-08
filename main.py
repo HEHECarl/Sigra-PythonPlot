@@ -1,6 +1,64 @@
 from MainWindow import MainWindow
-import sys
+import argparse
+
+
+def parse():
+    parser = argparse.ArgumentParser(description='Sigra Plot')
+    parser.add_argument('-path', type=str, action='append', nargs='+',
+                        help='Path of file need to be plotted. (-path <filepath> {<filepath>})')
+
+    parser.add_argument('-title', type=str,
+                        help='Set plot title. (-title <title name>)')
+
+    parser.add_argument('-xaxis', type=str,
+                        help='Set x axis label. (-xaxis <label name>)')
+
+    parser.add_argument('-yaxis', type=str,
+                        help='Set y axis label. (-yaxis <label name>)')
+
+    parser.add_argument('-channel', type=int, action='append', nargs='+',
+                        help='Select which channels be displayed. (-channel <channel number> {<channel number>})')
+
+    parser.add_argument('-legend', type=str, action='append', nargs='+',
+                        help='Set legends for the plot. (-legend <legend label> {<legend label>})')
+
+    parser.add_argument('-yrange', type=int, nargs=2,
+                        help='Set range for y axis. (-yrange <min> <max>)')
+
+    parser.add_argument('-export', type=str,
+                        help='Export plot to PNG file. (-export <filename>)')
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse()
+    main_window = MainWindow()
+    main_window.init_window()
+
+    if args.path is not None:
+        if args.path[0] is not None:
+            for i in range(len(args.path[0])):
+                main_window.import_new_data(args.path[0][i])
+    if args.title is not None:
+        main_window.set_title(args.title)
+    if args.xaxis is not None:
+        main_window.set_x_axis(args.xaxis)
+    if args.yaxis is not None:
+        main_window.set_y_axis(args.yaxis)
+    if args.channel is not None:
+        if args.channel[0] is not None:
+            main_window.set_channel_vis(args.channel[0])
+    if args.legend is not None:
+        if args.legend[0] is not None:
+            main_window.set_legends(args.legend[0])
+    if args.yrange is not None:
+        main_window.set_y_range(args.yrange[0], args.yrange[1])
+    if args.export is not None:
+        main_window.export_image(args.export)
+
+    main_window.exec()
+
 
 if __name__ == '__main__':
-    main_window = MainWindow(sys.argv)
-    main_window.init_window()
+    main()

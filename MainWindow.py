@@ -1,4 +1,5 @@
 import pyqtgraph as pg
+import pyqtgraph.exporters
 from pyqtgraph.Qt import QtGui, QtCore
 from DataProcess import DataProcessor
 from functools import partial
@@ -7,12 +8,13 @@ from Picks import Picks
 from SettingWindow import SettingWindow
 
 
-COLORS = ["#FF0000", "#00FF00", "#0000FF", "#000000", "800000", "#008000", "#000080", "#FFFF00",
+COLORS = ["#FF0000", "#00FF00", "#0000FF", "#000000", "#800000", "#008000", "#000080", "#FFFF00",
           "#00FFFF", "#FF00FF", "#808000", "#008080", "#800080", "#808080"]
+COLORS_NUM = 14
 
 
 class MainWindow:
-    def __init__(self, argv):
+    def __init__(self):
 
         self.app = QtGui.QApplication([])
         self.main_widget = QtGui.QWidget()
@@ -88,30 +90,13 @@ class MainWindow:
         self.main_layout.addLayout(self.function_buttons_layout, 4, 1)
         self.main_layout.addWidget(self.channel_group_box, 4, 2, 1, 2)
 
+    def exec(self):
         self.main_widget.show()
         self.app.exec_()
 
-    def dragEnterEvent(self, ev):
-        ev.accept()
-
-    def dropEvent(self, event):
-        processor = DataProcessor()
-        datasets = processor.read_datetime_file(event.mimeData().urls()[0].toLocalFile())
-        self.datasets.extend(datasets)
-        count = len(datasets)
-        for i in range(count):
-            self.plot_group.append(self.plot_widget.plot(x=datasets[i].get_x(),
-                                                         y=datasets[i].get_y(),
-                                                         pen=pg.mkPen(COLORS[self.data_count % 8], width=1,
-                                                                      name="Data")))
-            self.legend.addItemColor(self.plot_group[self.data_count], "Data" + str(self.data_count + 1),
-                                     COLORS[self.data_count % 8])
-            self.generate_channel_buttons()
-            self.data_count += 1
-
     def generate_channel_buttons(self):
         self.btn_group.append(QtGui.QPushButton(str(self.data_count + 1), checkable=True))
-        style = 'QPushButton {background-color: ' + COLORS[self.data_count % 8] + ';}'
+        style = 'QPushButton {background-color: ' + COLORS[self.data_count % COLORS_NUM] + ';}'
         self.btn_group[self.data_count].setStyleSheet(style)
         self.channel_buttons_layout.addWidget(self.btn_group[self.data_count])
         self.btn_group[self.data_count].setChecked(True)
@@ -119,6 +104,61 @@ class MainWindow:
         self.btn_group[self.data_count].setMaximumHeight(30)
         self.btn_group[self.data_count].clicked.connect(partial(self.channel_button_click, self.data_count))
         self.channel_group_box.setLayout(self.channel_buttons_layout)
+
+    def import_new_data(self, path):
+        processor = DataProcessor()
+        datasets = processor.read_datetime_file(path)
+        self.datasets.extend(datasets)
+        count = len(datasets)
+        for i in range(count):
+            self.plot_group.append(self.plot_widget.plot(x=datasets[i].get_x(),
+                                                         y=datasets[i].get_y(),
+                                                         pen=pg.mkPen(COLORS[self.data_count % COLORS_NUM], width=1,
+                                                                      name="Data")))
+            self.legend.addItemColor(self.plot_group[self.data_count], "Data" + str(self.data_count + 1),
+                                     COLORS[self.data_count % COLORS_NUM])
+            self.generate_channel_buttons()
+            self.data_count += 1
+
+    def set_title(self, title):
+        self.plot_widget.setTitle('<font size="9"><font color="black">' + title + '</font></font>')
+
+    def set_x_axis(self, label):
+        self.plot_widget.setLabel('bottom', '<font size="5">' + label + '</font>')
+
+    def set_y_axis(self, label):
+        self.plot_widget.setLabel('left', '<font size="5">' + label + '</font>')
+
+    def set_legends(self, legends):
+        if len(legends) > len(self.legend.items):
+            print("Entered too many legends!")
+
+        for i in range(len(legends)):
+            self.legend.items[i][1].setText(legends[i])
+
+    def set_channel_vis(self, channels):
+        print(channels)
+        for i in range(len(self.plot_group)):
+            if i+1 not in channels:
+                self.btn_group[i].setChecked(False)
+                self.plot_widget.removeItem(self.plot_group[i])
+                self.legend.removeItem(self.plot_group[i])
+
+    def set_y_range(self, min, max):
+        self.plot_widget.setYRange(min, max, padding=0)
+
+    def export_image(self, name):
+        self.app.processEvents()
+        exporter = pg.exporters.ImageExporter(self.plot_widget.plotItem)
+        exporter.parameters()['width'] = self.plot_widget.scene().sceneRect().width()
+        exporter.parameters()['height'] = self.plot_widget.scene().sceneRect().height()
+        exporter.export(name + '.png')
+
+    def dragEnterEvent(self, ev):
+        ev.accept()
+
+    def dropEvent(self, event):
+        self.import_new_data(event.mimeData().urls()[0].toLocalFile())
 
     def zoom_button_click(self):
         if self.zoom_button.isChecked():
@@ -149,7 +189,7 @@ class MainWindow:
         if self.btn_group[channel].isChecked():
             self.btn_group[channel].setChecked(True)
             self.plot_widget.addItem(self.plot_group[channel])
-            self.legend.addItemColor(self.plot_group[channel], "Data" + str(channel+1), COLORS[channel % 8])
+            self.legend.addItemColor(self.plot_group[channel], "Data" + str(channel+1), COLORS[channel % COLORS_NUM])
         else:
             self.btn_group[channel].setChecked(False)
             self.plot_widget.removeItem(self.plot_group[channel])
@@ -171,8 +211,8 @@ class MainWindow:
             self.hLine.setPos(self.moues_Y)
 
     def key_pressed(self, evt):
-        pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[self.picks.count % 8], label=chr(evt.key()) + "1",
-                               labelOpts={'position': 0.1, 'color': COLORS[self.picks.count % 8],
+        pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[self.picks.count % COLORS_NUM], label=chr(evt.key()) + "1",
+                               labelOpts={'position': 0.1, 'color': COLORS[self.picks.count % COLORS_NUM],
                                           'fill': (200, 200, 200, 50), 'movable': True})
         result, p = self.picks.add_pick(pick)
         if result == 2:

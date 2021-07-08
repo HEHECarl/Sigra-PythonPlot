@@ -49,7 +49,7 @@ class SettingWindow(QtGui.QWidget):
         for i in range(len(self.legend.items)):
             text = self.le[i].text()
             self.legend.items[i][1].setText(text)
-            self.close()
+        self.close()
 
     def cancel_button_click(self):
         self.close()
