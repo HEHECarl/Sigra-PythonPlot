@@ -14,11 +14,14 @@ class SettingWindow(QtGui.QWidget):
         self.plot_widget = plot_widget
 
         self.le = []
-        self.title_le = QtGui.QLineEdit(plot_widget.getPlotItem().titleLabel.text[35:40])
+        title_text = plot_widget.getPlotItem().titleLabel.text[35:].split('<')[0]
+        self.title_le = QtGui.QLineEdit(title_text)
         self.title_le.setAlignment(QtCore.Qt.AlignCenter)
-        self.x_le = QtGui.QLineEdit(plot_widget.getPlotItem().getAxis('bottom').labelText[15:21])
+        x_text = plot_widget.getPlotItem().getAxis('bottom').labelText[15:].split('<')[0]
+        self.x_le = QtGui.QLineEdit(x_text)
         self.x_le.setAlignment(QtCore.Qt.AlignCenter)
-        self.y_le = QtGui.QLineEdit(plot_widget.getPlotItem().getAxis('left').labelText[15:21])
+        y_text = plot_widget.getPlotItem().getAxis('left').labelText[15:].split('<')[0]
+        self.y_le = QtGui.QLineEdit(y_text)
         self.y_le.setAlignment(QtCore.Qt.AlignCenter)
 
         self.confirm_button = QtGui.QPushButton("Confirm")
@@ -45,7 +48,7 @@ class SettingWindow(QtGui.QWidget):
     def confirm_button_click(self):
         self.plot_widget.setLabel('bottom', '<font size="5">' + self.x_le.text() + '</font>')
         self.plot_widget.setLabel('left', '<font size="5">' + self.y_le.text() + '</font>')
-        self.plot_widget.setTitle('<font size="9"><font color="black">' + self.title_le.text() + '</font></font>')
+        self.plot_widget.setTitle('<font size="8"><font color="black">' + self.title_le.text() + '</font></font>')
         for i in range(len(self.legend.items)):
             text = self.le[i].text()
             self.legend.items[i][1].setText(text)

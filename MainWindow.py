@@ -26,6 +26,7 @@ class MainWindow:
         self.channel_buttons_layout = QtGui.QHBoxLayout()
         self.function_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.legend = MyLegend((80, 60), offset=(-60, 40))
+        self.legend.setLabelTextSize('12pt')
         self.legend.setParentItem(self.plot_widget.graphicsItem())
 
         self.zoom_button = QtGui.QPushButton("Zoom", checkable=True)
@@ -33,6 +34,7 @@ class MainWindow:
         self.save_pick_button = QtGui.QPushButton("Save Picks")
         self.load_pick_button = QtGui.QPushButton("Load Picks")
         self.graph_setting_button = QtGui.QPushButton("Graph Settings")
+        self.clear_graph_button = QtGui.QPushButton("Clear")
 
         self.vLine = pg.InfiniteLine(angle=90, movable=False, pen="#696969")
         self.hLine = pg.InfiniteLine(angle=0, movable=False, pen="#696969")
@@ -58,9 +60,10 @@ class MainWindow:
 
         self.plot_widget.plotItem.setAcceptDrops(True)
         self.plot_widget.setBackground('w')
-        self.plot_widget.showGrid(x=True, y=True, alpha=1)
+        self.plot_widget.showGrid(x=True, y=True, alpha=0.5)
         self.plot_widget.addItem(self.vLine, ignoreBounds=True)
         self.plot_widget.addItem(self.hLine, ignoreBounds=True)
+        self.plot_widget.getViewBox().suggestPadding = lambda *_: 0.0
         self.plot_widget.dragEnterEvent = self.dragEnterEvent
         self.plot_widget.plotItem.dropEvent = self.dropEvent
         self.plot_widget.scene().sigMouseMoved.connect(self.mouse_moved)
@@ -77,12 +80,14 @@ class MainWindow:
         self.save_pick_button.clicked.connect(self.save_pick_button_click)
         self.load_pick_button.clicked.connect(self.load_pick_button_click)
         self.graph_setting_button.clicked.connect(self.graph_setting_button_click)
+        self.clear_graph_button.clicked.connect(self.clear_graph_button_click)
 
         self.function_buttons_layout.addWidget(self.zoom_button, 0, 0)
         self.function_buttons_layout.addWidget(self.auto_button, 0, 1)
         self.function_buttons_layout.addWidget(self.save_pick_button, 1, 0)
         self.function_buttons_layout.addWidget(self.load_pick_button, 1, 1)
         self.function_buttons_layout.addWidget(self.graph_setting_button, 0, 2)
+        self.function_buttons_layout.addWidget(self.clear_graph_button, 1, 2)
         self.channel_buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
 
         self.main_layout.addWidget(self.plot_widget, 0, 0, 4, 4)
@@ -105,6 +110,35 @@ class MainWindow:
         self.btn_group[self.data_count].clicked.connect(partial(self.channel_button_click, self.data_count))
         self.channel_group_box.setLayout(self.channel_buttons_layout)
 
+    def import_setting_file(self, path):
+        file = open(path, "r")
+        line = file.readline()
+        title = line.split(':')[1]
+        line = file.readline()
+        xaxis = line.split(':')[1]
+        line = file.readline()
+        yaxis = line.split(':')[1]
+        line = file.readline()
+        channel = line.split(':')[1].strip().split()
+        channel = [int(i) for i in channel]
+        line = file.readline()
+        legend = line.split(':')[1]
+        line = file.readline()
+        xrange = line.split(':')[1]
+        line = file.readline()
+        yrange = line.split(':')[1]
+        line = file.readline()
+        export = line.split(':')[1]
+        self.set_channel_vis(channel)
+        print(yrange)
+        self.set_y_range(int(yrange.strip().split()[0]), int(yrange.strip().split()[1]))
+        self.set_x_range(xrange.strip().split()[0], xrange.strip().split()[1])
+        self.set_title(title)
+        self.set_x_axis(xaxis.strip())
+        self.set_y_axis(yaxis.strip())
+        self.set_legends(legend.strip().split(','))
+        self.export_image(export.strip())
+
     def import_new_data(self, path):
         processor = DataProcessor()
         datasets = processor.read_datetime_file(path)
@@ -120,8 +154,16 @@ class MainWindow:
             self.generate_channel_buttons()
             self.data_count += 1
 
+        self.plot_widget.enableAutoRange('y', False)
+        self.plot_widget.enableAutoRange('x', False)
+
+        self.app.processEvents()
+
     def set_title(self, title):
-        self.plot_widget.setTitle('<font size="9"><font color="black">' + title + '</font></font>')
+        state = self.plot_widget.getViewBox().state
+        title = title.replace("{x_start}", datetime.fromtimestamp(state['targetRange'][0][0]).strftime('%Y/%m/%d'))
+        title = title.replace("{x_end}", datetime.fromtimestamp(state['targetRange'][0][1]).strftime('%Y/%m/%d'))
+        self.plot_widget.setTitle('<font size="8"><font color="black">' + title + '</font></font>')
 
     def set_x_axis(self, label):
         self.plot_widget.setLabel('bottom', '<font size="5">' + label + '</font>')
@@ -137,7 +179,6 @@ class MainWindow:
             self.legend.items[i][1].setText(legends[i])
 
     def set_channel_vis(self, channels):
-        print(channels)
         for i in range(len(self.plot_group)):
             if i+1 not in channels:
                 self.btn_group[i].setChecked(False)
@@ -145,14 +186,30 @@ class MainWindow:
                 self.legend.removeItem(self.plot_group[i])
 
     def set_y_range(self, min, max):
+        self.app.processEvents()
         self.plot_widget.setYRange(min, max, padding=0)
 
+    def set_x_range(self, min, max):
+        self.app.processEvents()
+        state = self.plot_widget.getViewBox().state
+        if min == "{x_start}":
+            min = state['targetRange'][0][0]
+        else:
+            min = datetime.strptime(min, '%Y/%m/%d').timestamp()
+
+        if max == "{x_end}":
+            max = state['targetRange'][0][1]
+        else:
+            max = datetime.strptime(max, '%Y/%m/%d').timestamp()
+        self.plot_widget.setXRange(min, max, padding=0)
+
     def export_image(self, name):
+        self.main_widget.showMaximized()
         self.app.processEvents()
         exporter = pg.exporters.ImageExporter(self.plot_widget.plotItem)
-        exporter.parameters()['width'] = self.plot_widget.scene().sceneRect().width()
-        exporter.parameters()['height'] = self.plot_widget.scene().sceneRect().height()
-        exporter.export(name + '.png')
+        exporter.parameters()['width'] = 1600
+        exporter.parameters()['height'] = 900
+        exporter.export(name)
 
     def dragEnterEvent(self, ev):
         ev.accept()
@@ -169,7 +226,7 @@ class MainWindow:
             self.plot_widget.getViewBox().setMouseMode(self.plot_widget.getViewBox().PanMode)
 
     def auto_button_click(self):
-        self.plot_widget.getViewBox().autoRange()
+        self.plot_widget.getViewBox().autoRange(padding=0)
 
     def save_pick_button_click(self):
         self.picks.save_picks(self.datasets)
@@ -184,6 +241,23 @@ class MainWindow:
     def graph_setting_button_click(self):
         self.setting_window = SettingWindow(self.legend, self.plot_group, self.plot_widget)
         self.setting_window.show()
+
+    def clear_graph_button_click(self):
+        self.plot_widget.clear()
+        for btn in self.btn_group:
+            self.channel_buttons_layout.removeWidget(btn)
+        self.legend.clear()
+
+        self.datasets = []
+        self.data_count = 0
+
+        self.plot_group = []
+        self.btn_group = []
+
+        self.picks = Picks()
+
+        self.plot_widget.enableAutoRange('y', True)
+        self.plot_widget.enableAutoRange('x', True)
 
     def channel_button_click(self, channel):
         if self.btn_group[channel].isChecked():
@@ -211,7 +285,8 @@ class MainWindow:
             self.hLine.setPos(self.moues_Y)
 
     def key_pressed(self, evt):
-        pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[self.picks.count % COLORS_NUM], label=chr(evt.key()) + "1",
+        pick = pg.InfiniteLine(angle=90, movable=False, pen=COLORS[self.picks.count % COLORS_NUM],
+                               label=chr(evt.key()) + "1",
                                labelOpts={'position': 0.1, 'color': COLORS[self.picks.count % COLORS_NUM],
                                           'fill': (200, 200, 200, 50), 'movable': True})
         result, p = self.picks.add_pick(pick)

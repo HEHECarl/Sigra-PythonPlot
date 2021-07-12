@@ -28,7 +28,7 @@ class DataProcessor:
 
             if data_count != 0:
                 data_sets = []
-                dates = [datetime.strptime(line[0:19], date_format).timestamp()]
+                dates = [datetime.strptime(line[0:19], DATE_FORMATS[date_format]).timestamp()]
                 datas = []
 
                 for i in range(data_count):
@@ -39,9 +39,17 @@ class DataProcessor:
                     if line == '':
                         break
                     sections = line.split()
-                    dates.append(datetime.strptime(line[0:19], date_format).timestamp())
+                    try:
+                        dates.append(datetime.strptime(line[0:19], DATE_FORMATS[date_format]).timestamp())
+                    except:
+                        date_format = 1 - date_format
+                        dates.append(datetime.strptime(line[0:19], DATE_FORMATS[date_format]).timestamp())
+
                     for i in range(data_count):
-                        datas[i].append(float(sections[2 + i]))
+                        try:
+                            datas[i].append(float(sections[2 + i]))
+                        except:
+                            datas[i].append(datas[i][-1])
 
                 for i in range(data_count):
                     data_sets.append(DataSet(dates, datas[i]))
@@ -58,9 +66,9 @@ class DataProcessor:
                 print("Wrong File Format!")
                 return None
 
-            for date_format in DATE_FORMATS:
+            for i in range(len(DATE_FORMATS)):
                 try:
-                    d = datetime.strptime(line[0:19], date_format)
-                    return line, date_format
+                    d = datetime.strptime(line[0:19], DATE_FORMATS[i])
+                    return line, i
                 except ValueError:
                     continue
