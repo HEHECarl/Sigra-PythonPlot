@@ -68,7 +68,7 @@ class DataProcessor:
 
             for i in range(len(DATE_FORMATS)):
                 try:
-                    d = datetime.strptime(line[0:19], DATE_FORMATS[i])
+                    datetime.strptime(line[0:19], DATE_FORMATS[i])
                     return line, i
                 except ValueError:
                     continue

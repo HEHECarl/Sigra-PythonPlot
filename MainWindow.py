@@ -1,11 +1,13 @@
 import pyqtgraph as pg
 import pyqtgraph.exporters
+import time
 from pyqtgraph.Qt import QtGui, QtCore
 from DataProcess import DataProcessor
 from functools import partial
 from datetime import datetime
 from Picks import Picks
 from SettingWindow import SettingWindow
+from ImportWindow import ImportWindow
 
 
 COLORS = ["#FF0000", "#00FF00", "#0000FF", "#000000", "#800000", "#008000", "#000080", "#FFFF00",
@@ -40,6 +42,7 @@ class MainWindow:
         self.hLine = pg.InfiniteLine(angle=0, movable=False, pen="#696969")
         self.mouse_label = QtGui.QLabel("[0000/00/00 00:00:00, 0000.000]", self.main_widget)
 
+        self.x_type = None
         self.datasets = []
         self.data_count = 0
 
@@ -52,6 +55,7 @@ class MainWindow:
         self.moues_Y = 0
 
         self.setting_window = None
+        self.import_window = None
 
     def init_window(self):
         self.main_widget.setGeometry(0, 0, 1000, 700)
@@ -215,7 +219,9 @@ class MainWindow:
         ev.accept()
 
     def dropEvent(self, event):
-        self.import_new_data(event.mimeData().urls()[0].toLocalFile())
+        if self.x_type is None:
+            self.import_window = ImportWindow(self, event.mimeData().urls()[0].toLocalFile())
+            self.import_window.show()
 
     def zoom_button_click(self):
         if self.zoom_button.isChecked():
