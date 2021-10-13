@@ -1,6 +1,4 @@
-from datetime import datetime
-
-DATE_FORMATS = ['%d/%m/%Y %H:%M:%S', '%Y/%m/%d %H:%M:%S']
+from dateutil import parser
 
 
 class DataSet:
@@ -21,14 +19,14 @@ class DataProcessor:
 
     def read_datetime_file(self, path):
         file = open(path, "r")
-        line, date_format = self.find_first_line(file)
+        line = self.find_first_line(file)
         if line is not None:
             sections = line.split()
             data_count = len(sections) - 2
 
             if data_count != 0:
                 data_sets = []
-                dates = [datetime.strptime(line[0:19], DATE_FORMATS[date_format]).timestamp()]
+                dates = [parser.parse(' '.join(line.split()[0:2])).timestamp()]
                 datas = []
 
                 for i in range(data_count):
@@ -39,16 +37,17 @@ class DataProcessor:
                     if line == '':
                         break
                     sections = line.split()
+
                     try:
-                        dates.append(datetime.strptime(line[0:19], DATE_FORMATS[date_format]).timestamp())
-                    except:
-                        date_format = 1 - date_format
-                        dates.append(datetime.strptime(line[0:19], DATE_FORMATS[date_format]).timestamp())
+                        dates.append(parser.parse(' '.join(line.split()[0:2])).timestamp())
+                    except Exception:
+                        print("Invalid Data Line Found! " + line)
+                        continue
 
                     for i in range(data_count):
                         try:
                             datas[i].append(float(sections[2 + i]))
-                        except:
+                        except Exception:
                             datas[i].append(datas[i][-1])
 
                 for i in range(data_count):
@@ -63,12 +62,11 @@ class DataProcessor:
             line = file.readline()
 
             if not line:
-                print("Wrong File Format!")
+                print("Invalid File Format. Did not find row with valid date time.")
                 return None
 
-            for i in range(len(DATE_FORMATS)):
-                try:
-                    datetime.strptime(line[0:19], DATE_FORMATS[i])
-                    return line, i
-                except ValueError:
-                    continue
+            try:
+                parser.parse(' '.join(line.split()[0:2]))
+                return line
+            except Exception:
+                continue

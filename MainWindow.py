@@ -25,7 +25,7 @@ class MainWindow:
 
         self.plot_widget = pg.PlotWidget(axisItems={'bottom': pg.DateAxisItem()})
         self.channel_group_box = QtGui.QGroupBox(self.main_widget)
-        self.channel_buttons_layout = QtGui.QHBoxLayout()
+        self.channel_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.function_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.legend = MyLegend((80, 60), offset=(-60, 40))
         self.legend.setLabelTextSize('12pt')
@@ -74,9 +74,13 @@ class MainWindow:
         self.plot_widget.keyPressEvent = self.key_pressed
         self.plot_widget.getAxis('left').setTextPen("#000000")
         self.plot_widget.getAxis('bottom').setTextPen("#000000")
+        font = QtGui.QFont()
+        font.setPixelSize(20)
+        self.plot_widget.getAxis("left").setTickFont(font)
+        self.plot_widget.getAxis("bottom").setTickFont(font)
 
-        self.plot_widget.setLabel('bottom', '<font size="5">x axis</font>')
-        self.plot_widget.setLabel('left', '<font size="5">y axis</font>')
+        self.set_x_axis("x axis")
+        self.set_y_axis("y axis")
         self.plot_widget.setTitle('<font size="9"><font color="black">Title</font></font>')
 
         self.zoom_button.clicked.connect(self.zoom_button_click)
@@ -107,7 +111,8 @@ class MainWindow:
         self.btn_group.append(QtGui.QPushButton(str(self.data_count + 1), checkable=True))
         style = 'QPushButton {background-color: ' + COLORS[self.data_count % COLORS_NUM] + ';}'
         self.btn_group[self.data_count].setStyleSheet(style)
-        self.channel_buttons_layout.addWidget(self.btn_group[self.data_count])
+        self.channel_buttons_layout.addWidget(self.btn_group[self.data_count], self.data_count / 14,
+                                              self.data_count % 14)
         self.btn_group[self.data_count].setChecked(True)
         self.btn_group[self.data_count].setMaximumWidth(30)
         self.btn_group[self.data_count].setMaximumHeight(30)
@@ -133,8 +138,8 @@ class MainWindow:
         yrange = line.split(':')[1]
         line = file.readline()
         export = line.split(':')[1]
+
         self.set_channel_vis(channel)
-        print(yrange)
         self.set_y_range(int(yrange.strip().split()[0]), int(yrange.strip().split()[1]))
         self.set_x_range(xrange.strip().split()[0], xrange.strip().split()[1])
         self.set_title(title)
@@ -170,10 +175,10 @@ class MainWindow:
         self.plot_widget.setTitle('<font size="8"><font color="black">' + title + '</font></font>')
 
     def set_x_axis(self, label):
-        self.plot_widget.setLabel('bottom', '<font size="5">' + label + '</font>')
+        self.plot_widget.setLabel('bottom', '<font size="6">' + label + '</font>')
 
     def set_y_axis(self, label):
-        self.plot_widget.setLabel('left', '<font size="5">' + label + '</font>')
+        self.plot_widget.setLabel('left', '<font size="6">' + label + '</font>')
 
     def set_legends(self, legends):
         if len(legends) > len(self.legend.items):
@@ -222,6 +227,8 @@ class MainWindow:
         if self.x_type is None:
             self.import_window = ImportWindow(self, event.mimeData().urls()[0].toLocalFile())
             self.import_window.show()
+        else:
+            self.import_new_data(event.mimeData().urls()[0].toLocalFile())
 
     def zoom_button_click(self):
         if self.zoom_button.isChecked():
