@@ -28,7 +28,7 @@ class MainWindow:
         self.channel_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.function_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.legend = MyLegend((80, 60), offset=(-60, 40))
-        self.legend.setLabelTextSize('12pt')
+        self.legend.setLabelTextSize('11pt')
         self.legend.setParentItem(self.plot_widget.graphicsItem())
 
         self.zoom_button = QtGui.QPushButton("Zoom", checkable=True)
@@ -160,6 +160,7 @@ class MainWindow:
                                                                       name="Data")))
             self.legend.addItemColor(self.plot_group[self.data_count], "Data" + str(self.data_count + 1),
                                      COLORS[self.data_count % COLORS_NUM])
+            self.legend.setColumnCount(int(self.data_count / 10 + 1))
             self.generate_channel_buttons()
             self.data_count += 1
 

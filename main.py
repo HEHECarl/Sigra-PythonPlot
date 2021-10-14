@@ -4,6 +4,10 @@ import argparse
 
 def parse():
     parser = argparse.ArgumentParser(description='Sigra Plot')
+
+    parser.add_argument('-pathrun', type=str, action='append', nargs='+',
+                        help='Path of file need to be plotted. (-path <filepath> {<filepath>})')
+
     parser.add_argument('-path', type=str, action='append', nargs='+',
                         help='Path of file need to be plotted. (-path <filepath> {<filepath>})')
 
@@ -41,6 +45,13 @@ def main():
     args = parse()
     main_window = MainWindow()
     main_window.init_window()
+
+    if args.pathrun is not None:
+        if args.pathrun[0] is not None:
+            for i in range(len(args.pathrun[0])):
+                main_window.import_new_data(args.pathrun[0][i])
+                main_window.exec()
+                return
 
     if args.path is not None:
         if args.path[0] is not None:
