@@ -117,7 +117,7 @@ class Picks:
                 if self.picks1[i] is not None and self.picks2[i] is not None and \
                         self.picks2[i].p[0] > self.picks1[i].p[0]:
                     mean[i], std[i] = self.get_analysis_data(self.picks1[i].p[0], self.picks2[i].p[0],
-                                                                      dataset)
+                                                             dataset)
 
             f.write("\nMean                       ")
             for i in range(len(dataset)):
@@ -148,7 +148,7 @@ class Picks:
     def load_pick(self, main_widget, plot_widget):
         desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
         fname = QtGui.QFileDialog.getOpenFileName(main_widget, 'Open file',
-                                            desktop, "Text files (*.txt)")
+                                                  desktop, "Text files (*.txt)")
 
         f = open(fname[0], 'r')
         f.readline()

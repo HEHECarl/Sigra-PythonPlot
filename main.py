@@ -26,6 +26,9 @@ def parse():
     parser.add_argument('-legend', type=str, action='append', nargs='+',
                         help='Set legends for the plot. (-legend <legend label> { , <legend label>})')
 
+    parser.add_argument('-legendvis', type=int,
+                        help='Show/Hide Legend. (-legendvis <1/0>)')
+
     parser.add_argument('-yrange', type=int, nargs=2,
                         help='Set range for y axis. (-yrange <min> <max>)')
 
@@ -45,6 +48,9 @@ def main():
     args = parse()
     main_window = MainWindow()
     main_window.init_window()
+
+    if args.legendvis is not None:
+        main_window.show_hide_legend(args.legendvis)
 
     if args.pathrun is not None:
         if args.pathrun[0] is not None:
@@ -78,11 +84,12 @@ def main():
         if args.legend[0] is not None:
             ls = ' '.join(args.legend[0]).split(',')
             main_window.set_legends(ls)
-    if args.export is not None:
-        main_window.export_image(args.export)
 
     if args.setting is not None:
         main_window.import_setting_file(args.setting)
+
+    if args.export is not None:
+        main_window.export_image(args.export)
 
 
 if __name__ == '__main__':

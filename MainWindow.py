@@ -28,7 +28,7 @@ class MainWindow:
         self.channel_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.function_buttons_layout = QtGui.QGridLayout(self.main_widget)
         self.legend = MyLegend((80, 60), offset=(-60, 40))
-        self.legend.setLabelTextSize('11pt')
+        self.legend.setLabelTextSize('10pt')
         self.legend.setParentItem(self.plot_widget.graphicsItem())
 
         self.zoom_button = QtGui.QPushButton("Zoom", checkable=True)
@@ -45,6 +45,7 @@ class MainWindow:
         self.x_type = None
         self.datasets = []
         self.data_count = 0
+        self.legend_count = 0
 
         self.plot_group = []
         self.btn_group = []
@@ -136,17 +137,14 @@ class MainWindow:
         xrange = line.split(':')[1]
         line = file.readline()
         yrange = line.split(':')[1]
-        line = file.readline()
-        export = line.split(':')[1]
 
         self.set_channel_vis(channel)
-        self.set_y_range(int(yrange.strip().split()[0]), int(yrange.strip().split()[1]))
+        self.set_y_range(yrange.strip().split()[0], yrange.strip().split()[1])
         self.set_x_range(xrange.strip().split()[0], xrange.strip().split()[1])
         self.set_title(title)
         self.set_x_axis(xaxis.strip())
         self.set_y_axis(yaxis.strip())
         self.set_legends(legend.strip().split(','))
-        self.export_image(export.strip())
 
     def import_new_data(self, path):
         processor = DataProcessor()
@@ -160,7 +158,8 @@ class MainWindow:
                                                                       name="Data")))
             self.legend.addItemColor(self.plot_group[self.data_count], "Data" + str(self.data_count + 1),
                                      COLORS[self.data_count % COLORS_NUM])
-            self.legend.setColumnCount(int(self.data_count / 10 + 1))
+            self.legend_count += 1
+            self.upadte_legend()
             self.generate_channel_buttons()
             self.data_count += 1
 
@@ -188,16 +187,31 @@ class MainWindow:
         for i in range(len(legends)):
             self.legend.items[i][1].setText(legends[i])
 
+    def show_hide_legend(self, state):
+        if state:
+            self.legend.setOffset((-60, 40))
+        else:
+            self.legend.setOffset((10000, 10000))
+
+    def upadte_legend(self):
+        self.legend.setColumnCount(int(self.legend_count / 10 + 1))
+        self.legend.setGeometry(0, 0, 0, 0)
+
     def set_channel_vis(self, channels):
         for i in range(len(self.plot_group)):
             if i+1 not in channels:
                 self.btn_group[i].setChecked(False)
                 self.plot_widget.removeItem(self.plot_group[i])
                 self.legend.removeItem(self.plot_group[i])
+                self.legend_count -= 1
+                self.upadte_legend()
 
     def set_y_range(self, min, max):
         self.app.processEvents()
-        self.plot_widget.setYRange(min, max, padding=0)
+        if min == "{y_start}" and max == "{y_end}":
+            self.plot_widget.getViewBox().autoRange(padding=0)
+        else:
+            self.plot_widget.setYRange(int(min), int(max), padding=0)
 
     def set_x_range(self, min, max):
         self.app.processEvents()
@@ -278,10 +292,14 @@ class MainWindow:
             self.btn_group[channel].setChecked(True)
             self.plot_widget.addItem(self.plot_group[channel])
             self.legend.addItemColor(self.plot_group[channel], "Data" + str(channel+1), COLORS[channel % COLORS_NUM])
+            self.legend_count += 1
+            self.upadte_legend()
         else:
             self.btn_group[channel].setChecked(False)
             self.plot_widget.removeItem(self.plot_group[channel])
             self.legend.removeItem(self.plot_group[channel])
+            self.legend_count -= 1
+            self.upadte_legend()
 
     def mouse_moved(self, evt):
         pos = evt
@@ -313,8 +331,8 @@ class MainWindow:
 
 
 class MyLegend(pg.LegendItem):
-    def __init__(self, size=None, offset=None):
-        pg.LegendItem.__init__(self, size, offset)
+    def __init__(self, size=None, offset=None, horSpacing=20, verSpacing=-5):
+        pg.LegendItem.__init__(self, size, offset, horSpacing, verSpacing)
 
     def paint(self, p, *args):
         p.setPen(pg.mkPen(0, 0, 0))  # outline
