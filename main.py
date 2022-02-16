@@ -5,9 +5,6 @@ import argparse
 def parse():
     parser = argparse.ArgumentParser(description='Sigra Plot')
 
-    parser.add_argument('-pathrun', type=str, action='append', nargs='+',
-                        help='Path of file need to be plotted. (-path <filepath> {<filepath>})')
-
     parser.add_argument('-path', type=str, action='append', nargs='+',
                         help='Path of file need to be plotted. (-path <filepath> {<filepath>})')
 
@@ -41,6 +38,9 @@ def parse():
     parser.add_argument('-setting', type=str,
                         help='Import setting from file. (-setting <filename>)')
 
+    parser.add_argument('-show', type=int,
+                        help='Show/Not Show UI. (-show <1/0>)')
+
     return parser.parse_args()
 
 
@@ -49,24 +49,13 @@ def main():
     main_window = MainWindow()
     main_window.init_window()
 
-    if args.legendvis is not None:
-        main_window.show_hide_legend(args.legendvis)
-
-    if args.pathrun is not None:
-        if args.pathrun[0] is not None:
-            for i in range(len(args.pathrun[0])):
-                main_window.import_new_data(args.pathrun[0][i])
-                main_window.exec()
-                return
-
     if args.path is not None:
         if args.path[0] is not None:
             for i in range(len(args.path[0])):
                 main_window.import_new_data(args.path[0][i])
-    else:
-        main_window.exec()
-        return
 
+    if args.setting is not None:
+        main_window.import_setting_file(args.setting)
     if args.channel is not None:
         if args.channel[0] is not None:
             main_window.set_channel_vis(args.channel[0])
@@ -84,12 +73,60 @@ def main():
         if args.legend[0] is not None:
             ls = ' '.join(args.legend[0]).split(',')
             main_window.set_legends(ls)
+    if args.legendvis is not None:
+        main_window.show_hide_legend(args.legendvis)
 
-    if args.setting is not None:
-        main_window.import_setting_file(args.setting)
+    if args.show:
+        main_window.exec()
 
     if args.export is not None:
         main_window.export_image(args.export)
+
+    # if args.legendvis is not None:
+    #     main_window.show_hide_legend(args.legendvis)
+    #
+    # if args.pathrun is not None:
+    #     if args.pathrun[0] is not None:
+    #         for i in range(len(args.pathrun[0])):
+    #             main_window.import_new_data(args.pathrun[0][i])
+    #             main_window.exec()
+    #             if args.export is not None:
+    #                 main_window.export_image(args.export)
+    #             return
+    #
+    # if args.path is not None:
+    #     if args.path[0] is not None:
+    #         for i in range(len(args.path[0])):
+    #             main_window.import_new_data(args.path[0][i])
+    # else:
+    #     main_window.exec()
+    #     if args.export is not None:
+    #         main_window.export_image(args.export)
+    #     return
+    #
+    # if args.channel is not None:
+    #     if args.channel[0] is not None:
+    #         main_window.set_channel_vis(args.channel[0])
+    # if args.yrange is not None:
+    #     main_window.set_y_range(args.yrange[0], args.yrange[1])
+    # if args.xrange is not None:
+    #     main_window.set_x_range(args.xrange[0], args.xrange[1])
+    # if args.title is not None:
+    #     main_window.set_title(' '.join(args.title))
+    # if args.xaxis is not None:
+    #     main_window.set_x_axis(' '.join(args.xaxis))
+    # if args.yaxis is not None:
+    #     main_window.set_y_axis(' '.join(args.yaxis))
+    # if args.legend is not None:
+    #     if args.legend[0] is not None:
+    #         ls = ' '.join(args.legend[0]).split(',')
+    #         main_window.set_legends(ls)
+    #
+    # if args.setting is not None:
+    #     main_window.import_setting_file(args.setting)
+    #
+    # if args.export is not None:
+    #     main_window.export_image(args.export)
 
 
 if __name__ == '__main__':
