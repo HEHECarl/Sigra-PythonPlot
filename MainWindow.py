@@ -50,6 +50,7 @@ class MainWindow:
         self.plot_group = []
         self.btn_group = []
 
+        self.file_path = ""
         self.picks = Picks()
 
         self.moues_X = 0
@@ -147,6 +148,7 @@ class MainWindow:
         self.set_legends(legend.strip().split(','))
 
     def import_new_data(self, path):
+        self.file_path = path
         processor = DataProcessor()
         datasets = processor.read_datetime_file(path)
         self.datasets.extend(datasets)
@@ -257,9 +259,9 @@ class MainWindow:
         self.plot_widget.getViewBox().autoRange(padding=0)
 
     def save_pick_button_click(self):
-        self.picks.save_picks(self.datasets)
+        self.picks.save_picks(self.datasets, self.file_path.rsplit('/', 1)[0])
         msg = QtGui.QMessageBox()
-        msg.setText("Picks file has been saved to the desktop")
+        msg.setText("Picks file has been saved to " + self.file_path.rsplit('/', 1)[0])
         msg.setWindowTitle("Save Picks File")
         msg.exec_()
 

@@ -84,10 +84,9 @@ class Picks:
 
         return mean, std
 
-    def save_picks(self, dataset):
+    def save_picks(self, dataset, path):
         if self.count:
-            desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-            f = open(desktop + "/PICKS.txt", 'w')
+            f = open(path + "/PICKS.txt", 'w')
             f.write("       Date      Time      ")
             for i in range(len(dataset)):
                 f.write("   {0}".format(i).ljust(15))

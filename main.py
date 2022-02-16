@@ -76,58 +76,11 @@ def main():
     if args.legendvis is not None:
         main_window.show_hide_legend(args.legendvis)
 
-    if args.show:
+    if args.show is None or args.show:
         main_window.exec()
 
     if args.export is not None:
         main_window.export_image(args.export)
-
-    # if args.legendvis is not None:
-    #     main_window.show_hide_legend(args.legendvis)
-    #
-    # if args.pathrun is not None:
-    #     if args.pathrun[0] is not None:
-    #         for i in range(len(args.pathrun[0])):
-    #             main_window.import_new_data(args.pathrun[0][i])
-    #             main_window.exec()
-    #             if args.export is not None:
-    #                 main_window.export_image(args.export)
-    #             return
-    #
-    # if args.path is not None:
-    #     if args.path[0] is not None:
-    #         for i in range(len(args.path[0])):
-    #             main_window.import_new_data(args.path[0][i])
-    # else:
-    #     main_window.exec()
-    #     if args.export is not None:
-    #         main_window.export_image(args.export)
-    #     return
-    #
-    # if args.channel is not None:
-    #     if args.channel[0] is not None:
-    #         main_window.set_channel_vis(args.channel[0])
-    # if args.yrange is not None:
-    #     main_window.set_y_range(args.yrange[0], args.yrange[1])
-    # if args.xrange is not None:
-    #     main_window.set_x_range(args.xrange[0], args.xrange[1])
-    # if args.title is not None:
-    #     main_window.set_title(' '.join(args.title))
-    # if args.xaxis is not None:
-    #     main_window.set_x_axis(' '.join(args.xaxis))
-    # if args.yaxis is not None:
-    #     main_window.set_y_axis(' '.join(args.yaxis))
-    # if args.legend is not None:
-    #     if args.legend[0] is not None:
-    #         ls = ' '.join(args.legend[0]).split(',')
-    #         main_window.set_legends(ls)
-    #
-    # if args.setting is not None:
-    #     main_window.import_setting_file(args.setting)
-    #
-    # if args.export is not None:
-    #     main_window.export_image(args.export)
-
 
 if __name__ == '__main__':
     main()
