@@ -30,12 +30,16 @@ class DataProcessor:
                 datas = []
 
                 for i in range(data_count):
-                    datas.append([float(sections[2+i])])
+                    try:
+                        datas.append([float(sections[2+i])])
+                    except Exception:
+                        print("Invalid Data Line Found! " + line)
 
                 while True:
                     line = file.readline()
                     if line == '':
                         break
+
                     sections = line.split()
 
                     try:
@@ -44,13 +48,13 @@ class DataProcessor:
                         print("Invalid Data Line Found! " + line)
                         continue
 
-                    for i in range(data_count):
+                    for i in range(len(datas)):
                         try:
                             datas[i].append(float(sections[2 + i]))
                         except Exception:
                             datas[i].append(datas[i][-1])
 
-                for i in range(data_count):
+                for i in range(len(datas)):
                     data_sets.append(DataSet(dates, datas[i]))
 
                 return data_sets
