@@ -41,6 +41,9 @@ def parse():
     parser.add_argument('-show', type=int,
                         help='Show/Not Show UI. (-show <1/0>)')
 
+    parser.add_argument('-width', type=int,
+                        help='Line Width. (Integer Only)')
+
     return parser.parse_args()
 
 
@@ -48,6 +51,9 @@ def main():
     args = parse()
     main_window = MainWindow()
     main_window.init_window()
+
+    if args.width is not None:
+        main_window.set_width(args.width)
 
     if args.path is not None:
         if args.path[0] is not None:

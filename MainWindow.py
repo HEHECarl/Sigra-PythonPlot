@@ -10,9 +10,11 @@ from SettingWindow import SettingWindow
 from ImportWindow import ImportWindow
 
 
-COLORS = ["#FF0000", "#00FF00", "#0000FF", "#000000", "#800000", "#008000", "#000080", "#FFFF00",
-          "#00FFFF", "#FF00FF", "#808000", "#008080", "#800080", "#808080"]
-COLORS_NUM = 14
+COLORS = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4',
+          '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8',
+          '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', '#000000']
+
+COLORS_NUM = 21
 
 
 class MainWindow:
@@ -46,6 +48,7 @@ class MainWindow:
         self.datasets = []
         self.data_count = 0
         self.legend_count = 0
+        self.width = 2
 
         self.plot_group = []
         self.btn_group = []
@@ -156,7 +159,7 @@ class MainWindow:
         for i in range(count):
             self.plot_group.append(self.plot_widget.plot(x=datasets[i].get_x(),
                                                          y=datasets[i].get_y(),
-                                                         pen=pg.mkPen(COLORS[self.data_count % COLORS_NUM], width=1,
+                                                         pen=pg.mkPen(COLORS[self.data_count % COLORS_NUM], width=self.width,
                                                                       name="Data")))
             self.legend.addItemColor(self.plot_group[self.data_count], "Data" + str(self.data_count + 1),
                                      COLORS[self.data_count % COLORS_NUM])
@@ -181,6 +184,9 @@ class MainWindow:
 
     def set_y_axis(self, label):
         self.plot_widget.setLabel('left', '<font size="6">' + label + '</font>')
+
+    def set_width(self, width):
+        self.width = width
 
     def set_legends(self, legends):
         if len(legends) > len(self.legend.items):
