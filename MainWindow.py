@@ -10,9 +10,9 @@ from SettingWindow import SettingWindow
 from ImportWindow import ImportWindow
 
 
-COLORS = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4',
+COLORS = ['#e6194B', '#42d4f4', '#000075', '#ffe119', '#f58231', '#911eb4', '#3cb44b',
           '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8',
-          '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#a9a9a9', '#000000']
+          '#800000', '#aaffc3', '#808000', '#ffd8b1', '#4363d8', '#a9a9a9', '#000000']
 
 COLORS_NUM = 21
 
